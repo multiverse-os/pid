@@ -34,13 +34,16 @@ func main() {
   // Three standard locations are included
   /////////////////////////////////////////////////////////////////////////////
   // writes `/var/tmp/{executable_name}.pid`
-  pidTwo := pid.Write(pid.TempDefault()) 
+  pidTwo,_ := pid.Write(pid.TempDefault()) 
 
   // writes `/var/{current_username}/{executable_name}/{executable_name}.pid`
-  pidThree := pid.Write(pid.UserDefault())
+  pidThree, _ := pid.Write(pid.UserDefault())
   
   // writes `/var/run/test/{executable_name}/pid`
-  pidFour := pid.Write(pid.OSDefault()) 
+  pidFour, err := pid.Write(pid.OSDefault()) 
+  if err != nil {
+    fmt.Println("something major went wrong!")
+  }
 }
 ```
 

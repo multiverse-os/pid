@@ -24,9 +24,9 @@ func New(pidPath string) *File {
 	}
 }
 
-func WriteToTempDirectory() *File { return Write(TempDefault()) }
-func WriteToOSDefault() *File     { return Write(OSDefault()) }
-func WriteToUserDefault() *File   { return Write(UserDefault()) }
+func WriteToTempDirectory() (*File, error) { return Write(TempDefault()) }
+func WriteToOSDefault() (*File, error)     { return Write(OSDefault()) }
+func WriteToUserDefault() (*File, error)   { return Write(UserDefault()) }
 
 ///////////////////////////////////////////////////////////////////////////////
 // TODO: Consider using os.Executable() as the default app name
