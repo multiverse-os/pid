@@ -32,15 +32,15 @@ func main() {
   pid.Clean()
 
   // Three standard locations are included
+  /////////////////////////////////////////////////////////////////////////////
+  // writes `/var/tmp/{executable_name}.pid`
+  pidTwo := pid.Write(pid.TempDefault()) 
 
-  // writes `/var/tmp/test.pid`
-  pidTwo := pid.Write(pid.TempDefault("test")) 
-
-  // writes `/var/{current_username}/test/test.pid`
-  pidThree := pid.Write(pid.UserDefault("test"))
+  // writes `/var/{current_username}/{executable_name}/{executable_name}.pid`
+  pidThree := pid.Write(pid.UserDefault())
   
-  // writes `/var/run/test/test/pid`
-  pidFour := pid.Write(pid.OSDefault("test")) 
+  // writes `/var/run/test/{executable_name}/pid`
+  pidFour := pid.Write(pid.OSDefault()) 
 }
 ```
 
