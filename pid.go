@@ -8,7 +8,6 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
-	"syscall"
 )
 
 const defaultAppName = "service"
