@@ -55,19 +55,30 @@ func removeFile(path string) error {
 	return nil
 }
 
+func serviceName() string {
+	executable, _ := os.Executable()
+	return path.Base(executable)
+}
+
 //[ Pid File Location Helpers ]////////////////////////////////////////////////
-func OSDefault(app string) string   { return ("/var/run/" + app + "/" + app + ".pid") }
-func TempDefault(app string) string { return ("/var/tmp/" + app + ".pid") }
-func UserDefault(app string) string {
+func OSDefault() string {
+	app := serviceName()
+	return ("/var/run/" + app + "/" + app + ".pid")
+}
+func TempDefault() string {
+	return ("/var/tmp/" + serviceName() + ".pid")
+}
+func UserDefault() string {
 	user, err := user.Current()
 	if err != nil {
-		return TempDefault(app)
+		return TempDefault()
 	}
-	return ("/run/" + user.Name + "/" + app + ".pid")
+	return ("/run/" + user.Name + "/" + serviceName() + ".pid")
 }
 
 //[ File Methods ]/////////////////////////////////////////////////////////////
 func (self *File) Clean() error {
+	fmt.Println("self is:", self)
 	fmt.Println("cleaning up file with pid:", self.Pid)
 	fmt.Println("and path:", self.Path)
 	Unlock(self.File.Fd())
@@ -104,13 +115,8 @@ func Write(pidPath string) (*File, error) {
 	if pid.File, err = os.OpenFile(pid.Path, os.O_RDWR|os.O_CREATE, 0600); err != nil {
 		return nil, errOpenFailed
 	} else {
-		if bytesWritten, err := pid.File.WriteString(strconv.Itoa(pid.Pid) + "\n"); err != nil {
+		if _, err := pid.File.WriteString(strconv.Itoa(pid.Pid)); err != nil {
 			return nil, errWriteFailed
-		} else {
-			if pid.Pid != bytesWritten {
-				Clean(pid.Path)
-				return nil, errShortWrite
-			}
 		}
 	}
 	// NOTE: Locking via Fd() and returning the File object
