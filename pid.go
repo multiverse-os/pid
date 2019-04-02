@@ -1,6 +1,7 @@
 package pid
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -67,6 +68,8 @@ func UserDefault(app string) string {
 
 //[ File Methods ]/////////////////////////////////////////////////////////////
 func (self *File) Clean() error {
+	fmt.Println("cleaning up file with pid:", self.Pid)
+	fmt.Println("and path:", self.Path)
 	Unlock(self.File.Fd())
 	self.File.Close()
 	return removeFile(self.Path)
@@ -112,6 +115,8 @@ func Write(pidPath string) (*File, error) {
 	}
 	// NOTE: Locking via Fd() and returning the File object
 	Lock(pid.File.Fd())
+	fmt.Println("pid.Pid:", pid.Pid)
+	fmt.Println("pid.Path:", pid.Path)
 	return pid, nil
 }
 
