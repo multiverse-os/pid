@@ -10,8 +10,6 @@ import (
 	"strconv"
 )
 
-const defaultAppName = "service"
-
 type File struct {
 	*os.File
 	Path string
@@ -29,22 +27,16 @@ func New(pidPath string) *File {
 // TODO: Consider using os.Executable() as the default app name
 func ValidatePath(pidPath string) string {
 	if len(pidPath) < 0 || len(pidPath) > 256 {
-		return OSDefault(defaultAppName)
+		return OSDefault()
 	}
 	basename := path.Base(pidPath)
 	if basename[len(basename)-1:] == "/" {
-		return pidPath + defaultAppName + ".pid"
+		return pidPath + serviceName() + ".pid"
 	} else if filepath.Ext(basename) != ".pid" {
 		return pidPath + ".pid"
 	} else {
 		return pidPath
 	}
-}
-
-func appName(pidPath string) string {
-	basename := path.Base(pidPath)
-	extension := filepath.Ext(basename)
-	return basename[0 : len(basename)-len(extension)]
 }
 
 // TODO: Test this; it may not work if locked, so below fileless clean may fail
@@ -92,7 +84,7 @@ func Write(pidPath string) (*File, error) {
 	directory := filepath.Dir(pid.Path)
 	if _, err := os.Stat(pid.Path); os.IsNotExist(err) {
 		if err := os.MkdirAll(directory, 0700); err != nil {
-			Write(TempDefault(appName(pidPath)))
+			Write(TempDefault())
 		}
 	}
 	if _, err := os.Stat(pid.Path); !os.IsNotExist(err) {
