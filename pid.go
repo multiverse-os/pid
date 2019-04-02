@@ -1,7 +1,6 @@
 package pid
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -26,6 +25,7 @@ func New(pidPath string) *File {
 	}
 }
 
+// TODO: Consider using os.Executable() as the default app name
 func ValidatePath(pidPath string) string {
 	if len(pidPath) < 0 || len(pidPath) > 256 {
 		return OSDefault(defaultAppName)
@@ -74,16 +74,13 @@ func (self *File) Clean() error {
 
 func Write(pidPath string) (*File, error) {
 	pid := New(pidPath)
-
 	// NOTE: Confirm path exists, if does not exist write it
 	directory := filepath.Dir(pid.Path)
 	if _, err := os.Stat(pid.Path); os.IsNotExist(err) {
 		if err := os.MkdirAll(directory, 0700); err != nil {
-			fmt.Println("can not access specified path, writing to temp:", TempDefault(appName(pidPath)))
 			Write(TempDefault(appName(pidPath)))
 		}
 	}
-
 	if _, err := os.Stat(pid.Path); !os.IsNotExist(err) {
 		// NOTE: Exists, checking if pid is stale
 		if pid.File, err = os.OpenFile(pid.Path, os.O_RDWR|os.O_CREATE, 0600); err != nil {
@@ -91,7 +88,6 @@ func Write(pidPath string) (*File, error) {
 		} else {
 			if pidData, err := ioutil.ReadFile(pid.Path); err != nil {
 				pidInt, _ := strconv.Atoi(string(pidData))
-				fmt.Println("pidData as string:", pidData)
 				if isProcessRunning(pidInt) {
 					return nil, errFileLocked
 				} else {
@@ -100,7 +96,6 @@ func Write(pidPath string) (*File, error) {
 			}
 		}
 	}
-
 	// NOTE: Standard creation, file locking, and return Pid file object
 	var err error
 	if pid.File, err = os.OpenFile(pid.Path, os.O_RDWR|os.O_CREATE, 0600); err != nil {
@@ -109,15 +104,12 @@ func Write(pidPath string) (*File, error) {
 		if bytesWritten, err := pid.File.WriteString(strconv.Itoa(pid.Pid) + "\n"); err != nil {
 			return nil, errWriteFailed
 		} else {
-			fmt.Println("bytes written:", bytesWritten)
-			fmt.Println("len(pid):", pid.Pid)
 			if pid.Pid != bytesWritten {
 				Clean(pid.Path)
 				return nil, errShortWrite
 			}
 		}
 	}
-
 	// NOTE: Locking via Fd() and returning the File object
 	Lock(pid.File.Fd())
 	return pid, nil
