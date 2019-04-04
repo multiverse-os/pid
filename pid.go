@@ -1,7 +1,6 @@
 package pid
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -75,9 +74,6 @@ func UserDefault() string {
 
 //[ File Methods ]/////////////////////////////////////////////////////////////
 func (self *File) Clean() error {
-	fmt.Println("self is:", self)
-	fmt.Println("cleaning up file with pid:", self.Pid)
-	fmt.Println("and path:", self.Path)
 	Unlock(self.File.Fd())
 	self.File.Close()
 	return removeFile(self.Path)
@@ -112,14 +108,12 @@ func Write(pidPath string) (*File, error) {
 	if pid.File, err = os.OpenFile(pid.Path, os.O_RDWR|os.O_CREATE, 0600); err != nil {
 		return nil, errOpenFailed
 	} else {
-		if _, err := pid.File.WriteString(strconv.Itoa(pid.Pid)); err != nil {
+		if _, err := pid.File.WriteString(strconv.Itoa(pid.Pid) + "\n"); err != nil {
 			return nil, errWriteFailed
 		}
 	}
 	// NOTE: Locking via Fd() and returning the File object
 	Lock(pid.File.Fd())
-	fmt.Println("pid.Pid:", pid.Pid)
-	fmt.Println("pid.Path:", pid.Path)
 	return pid, nil
 }
 
@@ -128,6 +122,8 @@ func Clean(pidPath string) error {
 		return nil
 	} else {
 		// TODO: Experimental way to try to close it out with just path
+		// this was written without actually testing since we moved to holding the
+		// file in memory
 		if err := removeFile(pidPath); err != nil {
 			file, err := os.OpenFile(pidPath, os.O_RDWR, 0600)
 			if err != nil {
