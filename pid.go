@@ -1,6 +1,7 @@
 package pid
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"os/user"
@@ -35,8 +36,10 @@ func ValidatePath(pidPath string) string {
 	}
 	basename := path.Base(pidPath)
 	if basename[len(basename)-1:] == "/" {
+		fmt.Println("[pid] chaning pid to:", (pidPath + serviceName() + ".pid"))
 		return pidPath + serviceName() + ".pid"
 	} else if filepath.Ext(basename) != ".pid" {
+		fmt.Println("[pid] chaning pid to:", (pidPath + ".pid"))
 		return pidPath + ".pid"
 	} else {
 		return pidPath
