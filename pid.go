@@ -24,42 +24,6 @@ func New(pidPath string) *File {
 	}
 }
 
-func WriteToTempDirectory() (*File, error) { return Write(TempDefault()) }
-func WriteToOSDefault() (*File, error)     { return Write(OSDefault()) }
-func WriteToUserDefault() (*File, error)   { return Write(UserDefault()) }
-
-///////////////////////////////////////////////////////////////////////////////
-// TODO: Consider using os.Executable() as the default app name
-func ValidatePath(pidPath string) string {
-	if len(pidPath) < 0 || len(pidPath) > 256 {
-		return OSDefault()
-	}
-	basename := path.Base(pidPath)
-	if basename[len(basename)-1:] == "/" {
-		fmt.Println("[pid] chaning pid to:", (pidPath + serviceName() + ".pid"))
-		return pidPath + serviceName() + ".pid"
-	} else if filepath.Ext(basename) != ".pid" {
-		fmt.Println("[pid] chaning pid to:", (pidPath + ".pid"))
-		return pidPath + ".pid"
-	} else {
-		return pidPath
-	}
-}
-
-// TODO: Test this; it may not work if locked, so below fileless clean may fail
-func removeFile(path string) error {
-	if err := os.Remove(path); err != nil {
-		return errCleanFailed
-	}
-	return nil
-}
-
-func serviceName() string {
-	executable, _ := os.Executable()
-	return path.Base(executable)
-}
-
-//[ Pid File Location Helpers ]////////////////////////////////////////////////
 func OSDefault() string {
 	app := serviceName()
 	return ("/var/run/" + app + "/" + app + ".pid")
@@ -75,7 +39,44 @@ func UserDefault() string {
 	return ("/run/" + user.Name + "/" + serviceName() + ".pid")
 }
 
-//[ File Methods ]/////////////////////////////////////////////////////////////
+func WriteToTempDirectory() (*File, error) { return Write(TempDefault()) }
+func WriteToOSDefault() (*File, error)     { return Write(OSDefault()) }
+func WriteToUserDefault() (*File, error)   { return Write(UserDefault()) }
+
+// ////////////////////////////////////////////////////////////////////////////
+// TODO: Consider using os.Executable() as the default app name
+func ValidatePath(pidPath string) string {
+	if len(pidPath) < 0 || len(pidPath) > 256 {
+		return OSDefault()
+	}
+	basename := path.Base(pidPath)
+	if basename[len(basename)-1:] == "/" {
+		fmt.Printf("writing pid to: %v.pid", (pidPath + serviceName()))
+		return pidPath + serviceName() + ".pid"
+	} else if filepath.Ext(basename) != ".pid" {
+		fmt.Printf("writing pid file: %v.pid", pidPath)
+		return pidPath + ".pid"
+	} else {
+		return pidPath
+	}
+}
+
+// TODO
+// Test this; it may not work if locked, so below fileless clean and I'm
+// pretty sure there is a better way to avoid failure
+func removeFile(path string) error {
+	if err := os.Remove(path); err != nil {
+		return errCleanFailed
+	}
+	return nil
+}
+
+func serviceName() string {
+	executable, _ := os.Executable()
+	return path.Base(executable)
+}
+
+// ///////////////////////////////////////////////////////////////////
 func (self *File) Clean() error {
 	Unlock(self.File.Fd())
 	self.File.Close()
