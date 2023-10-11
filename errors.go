@@ -1,8 +1,6 @@
 package pid
 
-import (
-	"errors"
-)
+import "errors"
 
 // Segregated to simplify localization
 var (
