@@ -24,6 +24,12 @@ func New(pidPath string) *File {
 	}
 }
 
+func (f *File) Clean() error {
+	unlock(f.Fd())
+	f.Close()
+	return removeFile(f.Path)
+}
+
 func OSDefault() string {
 	app := serviceName()
 	return ("/var/run/" + app + "/" + app + ".pid")
@@ -43,7 +49,6 @@ func WriteToTempDirectory() (*File, error) { return Write(TempDefault()) }
 func WriteToOSDefault() (*File, error)     { return Write(OSDefault()) }
 func WriteToUserDefault() (*File, error)   { return Write(UserDefault()) }
 
-// ////////////////////////////////////////////////////////////////////////////
 // TODO: Consider using os.Executable() as the default app name
 func ValidatePath(pidPath string) string {
 	if len(pidPath) < 0 || len(pidPath) > 256 {
@@ -74,13 +79,6 @@ func removeFile(path string) error {
 func serviceName() string {
 	executable, _ := os.Executable()
 	return path.Base(executable)
-}
-
-// ///////////////////////////////////////////////////////////////////
-func (self *File) Clean() error {
-	unlock(self.File.Fd())
-	self.File.Close()
-	return removeFile(self.Path)
 }
 
 func Write(pidPath string) (*File, error) {
