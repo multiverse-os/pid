@@ -78,7 +78,7 @@ func serviceName() string {
 
 // ///////////////////////////////////////////////////////////////////
 func (self *File) Clean() error {
-	Unlock(self.File.Fd())
+	unlock(self.File.Fd())
 	self.File.Close()
 	return removeFile(self.Path)
 }
@@ -117,7 +117,7 @@ func Write(pidPath string) (*File, error) {
 		}
 	}
 	// NOTE: Locking via Fd() and returning the File object
-	Lock(pid.File.Fd())
+	lock(pid.File.Fd())
 	return pid, nil
 }
 
@@ -133,7 +133,7 @@ func Clean(pidPath string) error {
 			if err != nil {
 				return nil
 			}
-			Unlock(file.Fd())
+			unlock(file.Fd())
 			return removeFile(pidPath)
 		}
 	}
